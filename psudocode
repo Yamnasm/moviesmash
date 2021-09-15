@@ -1,0 +1,35 @@
+start bot
+if none exists:
+	scrape list of movies to json (imdb500)
+else:
+	import imdb json
+
+json:
+movie name
+movie link
+elo rating
+
+def present(movie1, movie2):
+	create image of the 2 movie front covers
+	embed them to message with titles of the 2 movies
+
+def elo_algo(wmovie, lmovie):
+		
+
+@command smash:
+	pick 2 random movies from json
+	await user picking 1 movie 
+	or: picking "not seen"
+	
+	elo algo is run and new values are given to the movies in json
+
+@command hiscore:
+	find top 10 movies in json and print
+
+@command list:
+	print entire list of movies in order of elo ranking
+
+@command delete:
+	await partial movie string
+	confirm
+	remove from json
