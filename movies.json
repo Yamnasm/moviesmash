@@ -1,0 +1,32 @@
+[
+    {
+        "id": "tt0111161",
+        "name": "The Shawshank Redemption",
+        "elo": 500,
+        "confidence": 0
+    },
+    {
+        "id": "tt0068646",
+        "name": "The Godfather",
+        "elo": 500,
+        "confidence": 0
+    },
+    {
+        "id": "tt0468569",
+        "name": "The Dark Knight",
+        "elo": 500,
+        "confidence": 0
+    },
+    {
+        "id": "tt0110912",
+        "name": "Pulp Fiction",
+        "elo": 500,
+        "confidence": 0
+    },
+    {
+        "id": "tt1375666",
+        "name": "Inception",
+        "elo": 500,
+        "confidence": 0
+    }
+  ]
