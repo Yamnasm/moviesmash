@@ -7,17 +7,23 @@ def present():
         choices = random.sample(data, 2)
         return choices
 
-def record_result(choice, user):
-    winner = choice[0]["id"]
-    loser = choice[1]["id"]
+def record_result(choice, user, not_seen = False):
+    
+    # this is garbo and needs fixing to make more sense.
+    if choice == "NOT SEEN":
+        action = "NOT_SEEN"
 
+    else:
+        action = "PICK"
+        result = [choice[0]["id"], choice[1]["id"]]
+        
     the_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
     new_data = {
-        "winner": winner,
-        "loser": loser,
-        "user": user,
-        "time": the_time
+        "Action": action,
+        "Result": result,
+        "User": user,
+        "Time": the_time
     }
     a = []
     if not os.path.isfile("results.json"):
@@ -55,16 +61,23 @@ if __name__ == "__main__":
         api_key = sett["TMDB_API_KEY"]
 
     # just a CLI function
-    def decide(choices):
-        pick = input(f"1: {choices[0]['name']}\n2: {choices[1]['name']}\n")
-        if pick == "1":
-            return choices
-        else:
-            choices[0], choices[1] = choices[1], choices[0]
-            return choices
 
-    choices = present()
-    record_result(decide(choices), "COMMANDLINE")
+    # FIX THIS, IT'S SO BAD.
 
-    #example of movie_poster usage.
-    print(get_movie_poster(choices[0]["id"], api_key))
+    # def decide(choices):
+    #     pick = input(f"1: {choices[0]['name']}\n2: {choices[1]['name']}\n")
+    #     pick_number = [s for s in pick.split() if pick.isdigit()][0]
+    #     if "not seen" in pick.lower():
+    #         not_seen = True
+    #     if pick_number == "1":
+    #         return choices
+    #     else:
+    #         choices[0], choices[1] = choices[1], choices[0]
+    #         return choices
+
+    # choices = present()
+    # record_result(decide(choices), "COMMANDLINE")
+
+    # #example of movie_poster usage.
+    #print(get_movie_poster(550201, api_key))
+    # print(get_movie_poster(choices[0]["id"], api_key))
