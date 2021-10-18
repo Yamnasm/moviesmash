@@ -1,6 +1,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
+settings.json
+movie_dump.json
+latest.log
+history.json
+movies.json
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
