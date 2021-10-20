@@ -1,5 +1,5 @@
 from discord.ext import commands
-import json, logging, sys, util, discord, io, time, random, asyncio
+import json, logging, os, sys, util, discord, io, time, random, asyncio
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
@@ -29,6 +29,17 @@ async def on_message(msg):
 
     await bot.process_commands(msg)
 
+@bot.command(name="restart", pass_context=True)
+async def restart(ctx):
+    if str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .restart command")
+        await ctx.send("restarting bot...", delete_after=3)
+        await asyncio.sleep(4)
+        os.execv(sys.executable, ["python3"] + sys.argv) # restart the bot
+    else:
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .restart command")
+        await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
+
 @bot.command(name="test", pass_context=True)
 async def test(ctx):
     logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .test command")
@@ -46,11 +57,13 @@ async def pick(ctx, log=True, colour=None, validation=False):
     else:
         ongoing_users.append(ctx.author.id)
 
+	# check if the user is in a dm and this is the first time (that's what log means)
     if log:
         if isinstance(ctx.message.channel, discord.DMChannel):
-            logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .pick command from DM")
-        else:
             logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .pick command")
+        else:
+            logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .pick while not in a DM")
+            return 0
 
     # keep colours for users
     if not colour:
@@ -67,6 +80,7 @@ async def pick(ctx, log=True, colour=None, validation=False):
     start_time = time.time()
 
     logger.debug(f".pick ({ctx.author.name}#{ctx.author.discriminator}): getting posters from choices...")
+
     poster1 = util.TMDB_IMAGE_URL + util.get_movie_property(choices[0]["id"], "poster_path")
     poster2 = util.TMDB_IMAGE_URL + util.get_movie_property(choices[1]["id"], "poster_path")
     description = f"1. {choices[0]['name']}\n2. {choices[1]['name']}\n"
@@ -100,7 +114,7 @@ async def pick(ctx, log=True, colour=None, validation=False):
         await ctx.message.delete()
         await ctx.send(f"⏰ {ctx.author.mention} you took too long to decide!", delete_after=3)
         return 0
-    
+
     if   response[0].emoji == "⬅️":
         logger.info(f".pick ({ctx.author.name}#{ctx.author.discriminator}): {choices[0]['name']} won against {choices[1]['name']}")
         util.log_result(user=ctx.author.id, winner=choices[0]["id"], loser=choices[1]["id"])

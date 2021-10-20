@@ -36,7 +36,7 @@ def get_random_movie_from_data(data, amount=1):
 
 def probability(r1, r2):
     return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (r1 - r2) / 400))
-  
+
 def elo_rating(w, l):
     w = int(w + ELO_K_FACTOR * (1 - probability(l, w)))
     l = int(l + ELO_K_FACTOR * (0 - probability(w, l)))
@@ -49,8 +49,16 @@ def create_choice():
 
 def get_movie_property(movie_id, property):
     url = TMDB_MOVIE_URL(movie_id)
-    response = urllib.request.urlopen(url).read().decode("utf-8")
-    data = json.loads(response)
+
+    try:
+        response = urllib.request.urlopen(url)
+    except urllib.HTTPError as e:
+        logger.info(f"Received a {e.code} from get_movie_property: e")
+        logger.info(f"could not get 200 code from get_movie_property url request")
+    else:
+        response_content = response.read().decode("utf-8")
+
+    data = json.loads(response_content)
     return data[property]
 
 def log_result(user, winner, loser):
