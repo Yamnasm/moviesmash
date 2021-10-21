@@ -3,7 +3,7 @@ import json, logging, os, sys, util, discord, io, time, random, asyncio
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
-DEV_MODE = True
+DEV_MODE = False
 
 intents = discord.Intents.default()
 intents.members = True
