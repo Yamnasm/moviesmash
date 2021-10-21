@@ -23,10 +23,12 @@ def parse_from_raw(popularity_min = 50):
                 movie_dictionary.append({
                     "id": movie["id"],
                     "name": movie["original_title"],
+                    "weight": movie["popularity"] - popularity_min
                 })
         
         progress_bar(i + 1, len(raw_movies), prefix="Progress", suffix="Complete", length=50)
 
+    movie_dictionary.sort(key = lambda x:x["weight"])
     with open("movies.json", "w") as file:
         json.dump(movie_dictionary, file)
 

@@ -34,6 +34,29 @@ def convert_posters_to_single_image(poster1, poster2):
 def get_random_movie_from_data(data, amount=1):
     return random.sample(data, amount)
 
+def weighted_movie_pick():
+    def iterate_comparison(rt, ti):
+        rand = rt * random.random()
+        low = 0
+        high = len(ti)
+
+        while low < high:
+            mid = low + (high - low) // 2
+            if rand > ti[mid]:
+                low = mid + 1
+            else:
+                high = mid
+        return low
+
+    total_index = []
+    running_total = 0
+    with open("movies.json", "r") as file:
+        data = json.load(file)
+        for w in data:
+            running_total += w["weight"]
+            total_index.append(running_total)
+        return [data[iterate_comparison(running_total, total_index)] for _ in range(2)]
+
 def probability(r1, r2):
     return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (r1 - r2) / 400))
 
