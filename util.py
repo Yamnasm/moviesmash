@@ -31,8 +31,20 @@ def convert_posters_to_single_image(poster1, poster2):
     output.seek(0)
     return output
 
-def get_random_movie_from_data(data, amount=1):
-    return random.sample(data, amount)
+def get_random_movie_from_data(movies):
+    choices = random.sample(list(movies.keys()), 2)
+
+    # prevents giving the user the same movie
+    if choices[0]["id"] == choices[1]["id"]:
+        return get_random_movie_from_data(movies)
+    else:
+        return choices
+
+def get_local_movie_from_id(id):
+    with open("movies.json", "r") as file:
+        movies = json.load(file)
+
+    return movies.get(str(id), False)
 
 def weighted_movie_pick():
     def iterate_comparison(rt, ti):
@@ -51,11 +63,11 @@ def weighted_movie_pick():
     total_index = []
     running_total = 0
     with open("movies.json", "r") as file:
-        data = json.load(file)
-        for w in data:
+        movies = json.load(file)
+        for w in movies:
             running_total += w["weight"]
             total_index.append(running_total)
-        return [data[iterate_comparison(running_total, total_index)] for _ in range(2)]
+        return [movies[iterate_comparison(running_total, total_index)] for _ in range(2)]
 
 def probability(r1, r2):
     return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (r1 - r2) / 400))
@@ -67,8 +79,8 @@ def elo_rating(w, l):
 
 def create_choice():
     with open("movies.json", "r") as file:
-        data = json.load(file)
-        return random.sample(data, 2)
+        movies = json.load(file)
+        return random.sample(movies, 2)
 
 def get_movie_property(movie_id, property):
     url = TMDB_MOVIE_URL(movie_id)
@@ -81,14 +93,14 @@ def get_movie_property(movie_id, property):
     else:
         response_content = response.read().decode("utf-8")
 
-    data = json.loads(response_content)
-    return data[property]
+    movies = json.loads(response_content)
+    return movies[property]
 
 def log_result(user, winner, loser):
     with open("history.json", "r") as file:
-        data = json.load(file)
+        movies = json.load(file)
     
-    data.append({
+    movies.append({
         "time"  : int(time.time()),
         "user"  : user,
         "winner": winner,
@@ -96,4 +108,4 @@ def log_result(user, winner, loser):
     })
 
     with open("history.json", "w") as file:
-        json.dump(data, file)
+        json.dump(movies, file)

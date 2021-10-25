@@ -1,9 +1,10 @@
 from discord.ext import commands
-import json, logging, os, sys, util, discord, io, time, random, asyncio
+import json, logging, os, sys, util, discord, io, time, random, asyncio, urllib.parse
+import urllib.error, termcolor
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
-DEV_MODE = False
+DEV_MODE = True
 
 intents = discord.Intents.default()
 intents.members = True
@@ -30,6 +31,10 @@ async def on_message(msg):
 
     await bot.process_commands(msg)
 
+@bot.event
+async def close():
+    logger.error(termcolor.colored(f"!!! THE BOT HAS CRASHED !!!", on_color="on_red"))
+
 @bot.command(name="restart", pass_context=True)
 async def restart(ctx):
     if str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
@@ -46,28 +51,72 @@ async def test(ctx):
     logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .test command")
     await ctx.send("test")
 
+@bot.command(name="add", pass_context=True)
+async def add(ctx, movie):
+    logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .add command")
+
+    # validate the movie url (if it is one)
+    url = urllib.parse.urlparse(movie)
+
+    if url.scheme and "themoviedb" in url.netloc and url.path:
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} sent a TMDB url, analysing it...")
+
+        movie_id = url.path.split("/")[2].split("-")[0] # get the id at the start of the path after /movie/
+
+        # check if the movie id exists in the... ahem... "database"
+        print("CHECKING MOVIE: ", util.get_local_movie_from_id(movie_id))
+        if util.get_local_movie_from_id(movie_id):
+            logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to add an existing movie!")
+            await ctx.send(f"{ctx.author.mention} that movie is already in our database!", delete_after=3)
+            await ctx.message.delete()
+            return
+
+        try:
+            title = util.get_movie_property(movie_id, "original_title")
+            date  = util.get_movie_property(movie_id, "release_date")
+
+        # BUG: Why exactly does it tell me module 'urllib' has no attribute 'HTTPError' when it clearly fucking does???
+        # the user gave us a valid tmdb link but the resource it points to doesn't exist
+        except urllib.error.HTTPError:
+            logger.info(f"{ctx.author.name}#{ctx.author.discriminator} gave a TMDB-valid URL but invalid resource.")
+            await ctx.send(f"{ctx.author.mention} movie not found (are you sure this is a movie?)", delete_after=3)
+            await ctx.message.delete()
+            return
+            
+        else:
+            logger.info(f"{ctx.author.name}#{ctx.author.discriminator} added {title} ({date.split('-')[0]})")
+            await ctx.send(f"{ctx.author.mention} added {title} ({date.split('-')[0]}) to the user-generated movie list!")
+            # add movie function here
+    
+    else:
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} sent an invalid url, ignoring...")
+        await ctx.send(f"{ctx.author.mention} this isn't a valid themoviedb.org link!", delete_after=3)
+        await ctx.message.delete()
+        return
+    
+
 @bot.command(name="pick", pass_context=True)
 async def pick(ctx, log=True, colour=None, validation=False):
 
     # an attempt to PEP8
     chooser = f"{ctx.author.name}#{ctx.author.discriminator}"
 
-    # checking if the user is already active with the bot
-    if ctx.author.id in ongoing_users and not validation:
-        logger.info(f"{chooser} attempted to invoke .pick while active")
-        await ctx.send(f"✋ {ctx.author.mention} you're already active with me!", delete_after=3)
-        await ctx.message.delete()
-        return 0
-    else:
-        ongoing_users.append(ctx.author.id)
-
-	# check if the user is in a dm and this is the first time (that's what log means)
+    # check if the user is in a dm and this is the first time (that's what log means)
     if log:
         if isinstance(ctx.message.channel, discord.DMChannel):
             logger.info(f"{chooser} invoked .pick command")
         else:
             logger.info(f"{chooser} attempted to invoke .pick while not in a DM")
-            return 0
+            return
+
+    # checking if the user is already active with the bot
+    if ctx.author.id in ongoing_users and not validation:
+        logger.info(f"{chooser} attempted to invoke .pick while active")
+        await ctx.send(f"✋ {ctx.author.mention} you're already active with me!", delete_after=3)
+        await ctx.message.delete()
+        return
+    else:
+        ongoing_users.append(ctx.author.id)
 
     # keep colours for users
     if not colour:
@@ -117,7 +166,7 @@ async def pick(ctx, log=True, colour=None, validation=False):
         await msg.delete()
         await ctx.message.delete()
         await ctx.send(f"⏰ {ctx.author.mention} you took too long to decide!", delete_after=3)
-        return 0
+        return
 
     if   response[0].emoji == "⬅️":
         logger.info(f".pick ({chooser}): {choices[0]['name']} won against {choices[1]['name']}")
@@ -145,7 +194,15 @@ async def pick(ctx, log=True, colour=None, validation=False):
         await msg.delete()
 
 if __name__ == "__main__":
-    if DEV_MODE:
-        bot.run(settings["DEV_TOKEN"])
-    else:
-        bot.run(settings["DISCORD_TOKEN"])
+
+    try:
+        if DEV_MODE:
+            bot.run(settings["DEV_TOKEN"])
+        else:
+            bot.run(settings["DISCORD_TOKEN"])
+    
+    except RuntimeError:
+        logger.info("!!! THE BOT EXPERIENCED A RUNTIME ERROR !!!")
+
+    finally:
+        pass # do final clean up stuff here
