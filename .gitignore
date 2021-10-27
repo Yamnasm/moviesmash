@@ -6,6 +6,7 @@ movie_dump.json
 latest.log
 history.json
 movies.json
+user_movies.json
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

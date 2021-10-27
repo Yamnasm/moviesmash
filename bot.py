@@ -1,22 +1,37 @@
 from discord.ext import commands
-import json, logging, os, sys, util, discord, io, time, random, asyncio, urllib.parse
-import urllib.error, termcolor
+import json, logging, os, sys, util, errors, discord, time, random, asyncio, urllib.parse
+import urllib.error, termcolor, pathlib
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
 DEV_MODE = True
 
-intents = discord.Intents.default()
-intents.members = True
-
-with open("settings.json") as file:
-    settings = json.load(file)
-
-bot = commands.Bot(command_prefix=".", pm_help=None, intents=intents)
-
 logging.basicConfig(level=LOGGING_LEVEL, datefmt="%H:%M:%S", format="[%(asctime)s] [%(levelname)8s] >>> %(message)s (%(filename)s:%(lineno)s)",
                     handlers=[logging.FileHandler("latest.log", 'w'), logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger(__name__)
+
+# required settings.json must be readable
+try:
+    with open("settings.json") as file:
+        settings = json.load(file)
+except FileNotFoundError:
+    logger.error(termcolor.colored(f"!!! THE BOT DOES NOT HAVE SETTINGS.JSON !!!", on_color="on_red"))
+    sys.exit()
+else:
+    logger.info("Found required settings.json")
+
+# required .json files for the bot to function
+required_files = ["movies.json", "user_movies.json", "history.json"]
+for file in required_files:
+    if not pathlib.Path(file).is_file():
+        logger.error(termcolor.colored(f"!!! BOT IS MISSING REQUIRED FILE ({file}) !!!", on_color="on_red"))
+    else:
+        logger.info(f"Found required file: {file}")
+
+intents = discord.Intents.default()
+intents.members = True
+
+bot = commands.Bot(command_prefix=".", pm_help=None, intents=intents)
 
 ongoing_users = []
 
@@ -72,12 +87,10 @@ async def add(ctx, movie):
             return
 
         try:
-            title = util.get_movie_property(movie_id, "original_title")
-            date  = util.get_movie_property(movie_id, "release_date")
+            title = util.get_movie_property(movie_id, "title")
+            date  = util.get_movie_property(movie_id, "release_date")    
 
-        # BUG: Why exactly does it tell me module 'urllib' has no attribute 'HTTPError' when it clearly fucking does???
-        # the user gave us a valid tmdb link but the resource it points to doesn't exist
-        except urllib.error.HTTPError:
+        except errors.MovieNotFound:
             logger.info(f"{ctx.author.name}#{ctx.author.discriminator} gave a TMDB-valid URL but invalid resource.")
             await ctx.send(f"{ctx.author.mention} movie not found (are you sure this is a movie?)", delete_after=3)
             await ctx.message.delete()
@@ -86,7 +99,7 @@ async def add(ctx, movie):
         else:
             logger.info(f"{ctx.author.name}#{ctx.author.discriminator} added {title} ({date.split('-')[0]})")
             await ctx.send(f"{ctx.author.mention} added {title} ({date.split('-')[0]}) to the user-generated movie list!")
-            # add movie function here
+            util.store_user_submitted_movie(movie_id)
     
     else:
         logger.info(f"{ctx.author.name}#{ctx.author.discriminator} sent an invalid url, ignoring...")
@@ -200,9 +213,6 @@ if __name__ == "__main__":
             bot.run(settings["DEV_TOKEN"])
         else:
             bot.run(settings["DISCORD_TOKEN"])
-    
-    except RuntimeError:
-        logger.info("!!! THE BOT EXPERIENCED A RUNTIME ERROR !!!")
 
     finally:
         pass # do final clean up stuff here

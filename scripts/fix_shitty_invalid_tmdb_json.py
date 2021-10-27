@@ -19,7 +19,7 @@ try:
         data = json.loads(line)
         movies.append({
             "id": data["id"],
-            "original_title": data["original_title"],
+            "title": data["title"],
             "popularity": data["popularity"]
         })
 

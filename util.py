@@ -1,9 +1,12 @@
 from PIL import Image
-import json, time, datetime, random, math, gzip, shutil, os, urllib.request, logging, io
+import json, time, random, math, urllib.request, logging, io, errors
 
 TMDB_API_KEY    = "b9692454ba258237fa4c703f45f7467a"
 TMDB_IMAGE_URL  = "https://image.tmdb.org/t/p/w154"
 TMDB_MOVIE_URL  = lambda x: f"https://api.themoviedb.org/3/movie/{x}?api_key={TMDB_API_KEY}"
+
+# put this in a file so it can be accessed from multiple places
+MINIMUM_MOVIE_POPULARITY = 50
 
 ELO_K_FACTOR = 30
 
@@ -62,11 +65,15 @@ def weighted_movie_pick():
 
     total_index = []
     running_total = 0
+
     with open("movies.json", "r") as file:
         movies = json.load(file)
-        for w in movies:
+
+        for w in movies.values():
             running_total += w["weight"]
             total_index.append(running_total)
+
+        # YAMNASM FIX THIS
         return [movies[iterate_comparison(running_total, total_index)] for _ in range(2)]
 
 def probability(r1, r2):
@@ -87,14 +94,24 @@ def get_movie_property(movie_id, property):
 
     try:
         response = urllib.request.urlopen(url)
-    except urllib.HTTPError as e:
+    except urllib.error.HTTPError as e:
         logger.info(f"Received a {e.code} from get_movie_property: e")
         logger.info(f"could not get 200 code from get_movie_property url request")
+        raise errors.MovieNotFound(e.code, "Movie not found")
     else:
         response_content = response.read().decode("utf-8")
+        movies = json.loads(response_content)
 
-    movies = json.loads(response_content)
-    return movies[property]
+        return movies[property]
+
+def store_user_submitted_movie(movie_id, title):
+    with open("user_movies.json", "r") as file:
+        data = json.load(file)
+
+    data[movie_id] = {
+        "name": title,                                       # this can go into the negative???
+        "weight": get_movie_property(movie_id, "popularity") # - MINIMUM_MOVIE_POPULARITY
+    }
 
 def log_result(user, winner, loser):
     with open("history.json", "r") as file:
