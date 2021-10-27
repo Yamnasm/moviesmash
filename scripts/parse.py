@@ -9,7 +9,7 @@ def progress_bar(iteration, total, prefix = '', suffix = '', decimals = 1, lengt
         print()
 
 def parse_from_raw(popularity_min = 50):
-    with open("../movie_dump.json") as file:
+    with open("movie_dump.json") as file:
         raw_movies = json.load(file)
 
     with open("../user_movies.json") as file:
