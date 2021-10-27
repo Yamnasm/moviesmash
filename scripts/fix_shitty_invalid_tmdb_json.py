@@ -8,7 +8,7 @@ def progress_bar(iteration, total, prefix = '', suffix = '', decimals = 1, lengt
     if iteration == total: 
         print()
 
-with open("10_25_2021.json", encoding="utf-8") as file:
+with open("10_27_2021.json", encoding="utf-8") as file:
     lines = file.readlines()
 
 movies = []
@@ -19,7 +19,7 @@ try:
         data = json.loads(line)
         movies.append({
             "id": data["id"],
-            "title": data["title"],
+            "title": data["original_title"],
             "popularity": data["popularity"]
         })
 

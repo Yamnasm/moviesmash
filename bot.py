@@ -4,7 +4,7 @@ import urllib.error, termcolor, pathlib
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
-DEV_MODE = True
+DEV_MODE = False
 
 logging.basicConfig(level=LOGGING_LEVEL, datefmt="%H:%M:%S", format="[%(asctime)s] [%(levelname)8s] >>> %(message)s (%(filename)s:%(lineno)s)",
                     handlers=[logging.FileHandler("latest.log", 'w'), logging.StreamHandler(sys.stdout)])
@@ -149,7 +149,7 @@ async def pick(ctx, log=True, colour=None, validation=False):
 
     poster1 = util.TMDB_IMAGE_URL + util.get_movie_property(choices[0]["id"], "poster_path")
     poster2 = util.TMDB_IMAGE_URL + util.get_movie_property(choices[1]["id"], "poster_path")
-    description = f"1. {choices[0]['name']}\n2. {choices[1]['name']}\n"
+    description = f"1. {choices[0]['title']}\n2. {choices[1]['title']}\n"
 
     embed = discord.Embed(title="- P I C K - A - M O V I E -", description=description, colour=colour)
     embed.set_footer(text=f"{chooser}")
@@ -182,14 +182,14 @@ async def pick(ctx, log=True, colour=None, validation=False):
         return
 
     if   response[0].emoji == "⬅️":
-        logger.info(f".pick ({chooser}): {choices[0]['name']} won against {choices[1]['name']}")
+        logger.info(f".pick ({chooser}): {choices[0]['title']} won against {choices[1]['title']}")
         util.log_result(user=ctx.author.id, winner=choices[0]["id"], loser=choices[1]["id"])
 
         await msg.delete()
         await pick(ctx, log=False, colour=colour, validation=True)
 
     elif response[0].emoji == "➡️":
-        logger.info(f".pick ({chooser}): {choices[1]['name']} won against {choices[0]['name']}")
+        logger.info(f".pick ({chooser}): {choices[1]['title']} won against {choices[0]['title']}")
         util.log_result(user=ctx.author.id, winner=choices[1]["id"], loser=choices[0]["id"])
 
         await msg.delete()

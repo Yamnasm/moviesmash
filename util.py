@@ -68,13 +68,15 @@ def weighted_movie_pick():
 
     with open("movies.json", "r") as file:
         movies = json.load(file)
+        movielist = []
+        for key, movie in movies.items():
+            movielist.append(movie)
 
-        for w in movies.values():
+        for w in movielist:
             running_total += w["weight"]
             total_index.append(running_total)
 
-        # YAMNASM FIX THIS
-        return [movies[iterate_comparison(running_total, total_index)] for _ in range(2)]
+        return [movielist[iterate_comparison(running_total, total_index)] for _ in range(2)]
 
 def probability(r1, r2):
     return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (r1 - r2) / 400))

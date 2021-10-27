@@ -9,10 +9,10 @@ def progress_bar(iteration, total, prefix = '', suffix = '', decimals = 1, lengt
         print()
 
 def parse_from_raw(popularity_min = 50):
-    with open("movie_dump.json") as file:
+    with open("../movie_dump.json") as file:
         raw_movies = json.load(file)
 
-    with open("user_movies.json") as file:
+    with open("../user_movies.json") as file:
         user_movies = json.load(file)
     
     # creates a dictionary instead of a list now for better optimised searching
@@ -25,6 +25,7 @@ def parse_from_raw(popularity_min = 50):
         if movie["popularity"] >= popularity_min and movie["title"][0].isascii():
 
             movie_dictionary[movie['id']] = {
+                "id": movie["id"],
                 "title": movie["title"],
                 "weight": movie["popularity"] - popularity_min
             }
