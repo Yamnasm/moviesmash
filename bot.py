@@ -4,7 +4,7 @@ import urllib.error, termcolor, pathlib, datetime
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
-DEV_MODE = False
+DEV_MODE = True
 LOG_TO_CHANNEL = True
 
 logging.basicConfig(level=LOGGING_LEVEL, datefmt="%H:%M:%S", format="[%(asctime)s] [%(levelname)8s] >>> %(message)s (%(filename)s:%(lineno)s)",
@@ -184,7 +184,12 @@ async def pick(ctx, log=True, colour=None, validation=False):
 
     if   response[0].emoji == "⬅️":
         logger.info(f".pick ({chooser}): {choices[0]['title']} won against {choices[1]['title']}")
-        util.log_result(user=ctx.author.id, winner=choices[0]["id"], loser=choices[1]["id"])
+        util.log_result(
+            user_id=ctx.author.id,
+            user_name=f"{ctx.author.name}#{ctx.author.discriminator}",
+            winner=choices[0]["id"],
+            loser=choices[1]["id"]
+        )
 
         if LOG_TO_CHANNEL:
             channel = bot.get_channel(util.LOG_CHANNEL)
@@ -201,7 +206,12 @@ async def pick(ctx, log=True, colour=None, validation=False):
 
     elif response[0].emoji == "➡️":
         logger.info(f".pick ({chooser}): {choices[1]['title']} won against {choices[0]['title']}")
-        util.log_result(user=ctx.author.id, winner=choices[1]["id"], loser=choices[0]["id"])
+        util.log_result(
+            user_id=ctx.author.id,
+            user_name=f"{ctx.author.name}#{ctx.author.discriminator}",
+            winner=choices[1]["id"],
+            loser=choices[0]["id"]
+        )
 
         if LOG_TO_CHANNEL:
             channel = bot.get_channel(util.LOG_CHANNEL)

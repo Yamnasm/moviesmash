@@ -117,15 +117,21 @@ def store_user_submitted_movie(movie_id, title):
         "weight": get_movie_property(movie_id, "popularity") # - MINIMUM_MOVIE_POPULARITY
     }
 
-def log_result(user, winner, loser):
+def log_result(user_id, user_name, winner, loser):
     with open("history.json", "r") as file:
         movies = json.load(file)
     
+    # maybe in future add the weight to the history
+    # since the xlsx shit is gonna see it and you
+    # might want to do some funky stuff with that?
     movies.append({
-        "time"  : int(time.time()),
-        "user"  : user,
-        "winner": winner,
-        "loser" : loser
+        "time"        : int(time.time()),
+        "user_id"     : user_id,
+        "user_name"   : user_name,
+        "winner_id"   : winner,
+        "winner_name" : get_movie_property(winner, "title"),
+        "loser_id"    : loser,
+        "loser_name"  : get_movie_property(loser, "title")
     })
 
     with open("history.json", "w") as file:
