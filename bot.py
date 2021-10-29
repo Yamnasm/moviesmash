@@ -1,10 +1,11 @@
 from discord.ext import commands
 import json, logging, os, sys, util, errors, discord, time, random, asyncio, urllib.parse
-import urllib.error, termcolor, pathlib
+import urllib.error, termcolor, pathlib, datetime
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
 DEV_MODE = False
+LOG_TO_CHANNEL = True
 
 logging.basicConfig(level=LOGGING_LEVEL, datefmt="%H:%M:%S", format="[%(asctime)s] [%(levelname)8s] >>> %(message)s (%(filename)s:%(lineno)s)",
                     handlers=[logging.FileHandler("latest.log", 'w'), logging.StreamHandler(sys.stdout)])
@@ -185,12 +186,32 @@ async def pick(ctx, log=True, colour=None, validation=False):
         logger.info(f".pick ({chooser}): {choices[0]['title']} won against {choices[1]['title']}")
         util.log_result(user=ctx.author.id, winner=choices[0]["id"], loser=choices[1]["id"])
 
+        if LOG_TO_CHANNEL:
+            channel = bot.get_channel(util.LOG_CHANNEL)
+            embed = discord.Embed(timestamp=datetime.datetime.utcnow())
+
+            embed.set_thumbnail(url=poster1)
+            embed.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
+            embed.add_field(name=f"{choices[0]['title']} ", value="👍", inline=True)
+            embed.add_field(name=choices[1]["title"], value="👎", inline=True)
+            await channel.send(embed=embed)
+
         await msg.delete()
         await pick(ctx, log=False, colour=colour, validation=True)
 
     elif response[0].emoji == "➡️":
         logger.info(f".pick ({chooser}): {choices[1]['title']} won against {choices[0]['title']}")
         util.log_result(user=ctx.author.id, winner=choices[1]["id"], loser=choices[0]["id"])
+
+        if LOG_TO_CHANNEL:
+            channel = bot.get_channel(util.LOG_CHANNEL)
+            embed = discord.Embed(timestamp=datetime.datetime.utcnow())
+
+            embed.set_thumbnail(url=poster2)
+            embed.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
+            embed.add_field(name=f"{choices[1]['title']} ", value="👍", inline=True)
+            embed.add_field(name=choices[0]["title"], value="👎", inline=True)
+            await channel.send(embed=embed)
 
         await msg.delete()
         await pick(ctx, log=False, colour=colour, validation=True)

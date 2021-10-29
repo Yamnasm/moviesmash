@@ -13,6 +13,8 @@ ELO_K_FACTOR = 30
 UPDATER_INTERVAL = 0
 LAST_UPDATED     = 0
 
+LOG_CHANNEL      = 903446384932446299
+
 logger = logging.getLogger(__name__)
 
 def convert_posters_to_single_image(poster1, poster2):
