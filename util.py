@@ -36,14 +36,14 @@ def convert_posters_to_single_image(poster1, poster2):
     output.seek(0)
     return output
 
-def get_random_movie_from_data(movies):
-    choices = random.sample(list(movies.keys()), 2)
+# def get_random_movie_from_data(movies):
+#     choices = random.sample(list(movies.keys()), 2)
 
-    # prevents giving the user the same movie
-    if choices[0]["id"] == choices[1]["id"]:
-        return get_random_movie_from_data(movies)
-    else:
-        return choices
+#     # prevents giving the user the same movie
+#     if choices[0]["id"] == choices[1]["id"]:
+#         return get_random_movie_from_data(movies)
+#     else:
+#         return choices
 
 def get_local_movie_from_id(id):
     with open("movies.json", "r") as file:
@@ -77,8 +77,11 @@ def weighted_movie_pick():
         for w in movielist:
             running_total += w["weight"]
             total_index.append(running_total)
-
-        return [movielist[iterate_comparison(running_total, total_index)] for _ in range(2)]
+        choices = [movielist[iterate_comparison(running_total, total_index)] for _ in range(2)]
+        if choices[0]["id"] == choices[1]["id"]:
+            return weighted_movie_pick()
+        else:
+            return choices
 
 def probability(r1, r2):
     return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (r1 - r2) / 400))
