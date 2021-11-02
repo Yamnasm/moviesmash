@@ -4,7 +4,7 @@ import urllib.error, termcolor, pathlib, datetime
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
-DEV_MODE = True
+DEV_MODE = False
 LOG_TO_CHANNEL = True
 
 logging.basicConfig(level=LOGGING_LEVEL, datefmt="%H:%M:%S", format="[%(asctime)s] [%(levelname)8s] >>> %(message)s (%(filename)s:%(lineno)s)",
@@ -83,7 +83,7 @@ async def users(ctx):
 
     message = ""
     for i, name in enumerate(members_name):
-        message += f"[{ongoing_users[i]}] {name}"
+        message += f"[{ongoing_users[i]}] {name}\n"
 
     # don't expose users on a public channel
     await ctx.author.send(message)
