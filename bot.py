@@ -84,6 +84,16 @@ async def users(ctx):
     # don't expose users on a public channel
     await ctx.author.send(members)
 
+@bot.command(name="cancel", pass_context=True)
+async def cancel(user, ctx):
+    if not str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .cancel command")
+        await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
+    
+    if user in ongoing_users:
+        logger.info(f".pick ({user}): WAS FORCED TO stop requesting choices")
+        ongoing_users.remove(ctx.author.id)
+
 @bot.command(name="test", pass_context=True)
 async def test(ctx):
     logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .test command")
