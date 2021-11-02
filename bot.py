@@ -4,7 +4,7 @@ import urllib.error, termcolor, pathlib, datetime
 
 LOGGING_LEVEL = logging.INFO
 VOTE_TIMEOUT = 60 * 5
-DEV_MODE = False
+DEV_MODE = True
 LOG_TO_CHANNEL = True
 
 logging.basicConfig(level=LOGGING_LEVEL, datefmt="%H:%M:%S", format="[%(asctime)s] [%(levelname)8s] >>> %(message)s (%(filename)s:%(lineno)s)",
@@ -34,7 +34,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix=".", pm_help=None, intents=intents)
 
-ongoing_users = []
+ongoing_users = set()
 
 @bot.event
 async def on_ready():
@@ -183,7 +183,9 @@ async def pick(ctx, log=True, colour=None, validation=False):
         await ctx.send(f"✋ {ctx.author.mention} you're already active with me!", delete_after=3)
         await ctx.message.delete()
         return
-    else:
+
+    # user has invoked .pick uniquely
+    elif not validation:
         ongoing_users.append(ctx.author.id)
 
     # keep colours for users
