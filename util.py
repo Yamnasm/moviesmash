@@ -190,14 +190,13 @@ def get_movie_property(movie_id, property):
     url = TMDB_MOVIE_URL(movie_id)
 
     try:
-        response = urllib.request.urlopen(url)
-    except urllib.error.HTTPError as e:
+        response = requests.get(url)
+    except requests.exceptions.HTTPError as e:
         logger.info(f"Received a {e.code} from get_movie_property: e")
         logger.info(f"could not get 200 code from get_movie_property url request")
         raise errors.MovieNotFound(e.code, "Movie not found")
     else:
-        response_content = response.read().decode("utf-8")
-        movies = json.loads(response_content)
+        movies = response.json()
 
         return movies[property]
 
