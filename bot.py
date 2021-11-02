@@ -119,7 +119,6 @@ async def add(ctx, movie):
         await ctx.send(f"{ctx.author.mention} this isn't a valid themoviedb.org link!", delete_after=3)
         await ctx.message.delete()
         return
-    
 
 @bot.command(name="pick", pass_context=True)
 async def pick(ctx, log=True, colour=None, validation=False):

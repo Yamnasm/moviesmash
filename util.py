@@ -1,5 +1,5 @@
 from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
-import json, time, random, math, urllib.request, logging, io, errors, requests, math
+import json, time, random, math, urllib.request, logging, io, errors, requests, math, bot
 
 TMDB_API_KEY    = "b9692454ba258237fa4c703f45f7467a"
 TMDB_IMAGE_URL  = lambda x: f"https://image.tmdb.org/t/p/w{x}" # 92, 154, 185, 342, 500, 780, original
@@ -13,7 +13,8 @@ ELO_K_FACTOR = 30
 UPDATER_INTERVAL = 0
 LAST_UPDATED     = 0
 
-LOG_CHANNEL      = 903446384932446299
+# changes the log channel depending on if it's DEV_MODE or not
+LOG_CHANNEL = 903446384932446299 if bot.DEV_MODE else 905216536057376808
 
 TIERLIST_MAX_COLUMNS_ALLOWED = 50
 TIERLIST_PADDING_PIXELS = (10, 10, 10, 10)
