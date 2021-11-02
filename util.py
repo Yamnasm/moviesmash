@@ -2,7 +2,7 @@ from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
 import json, time, random, math, urllib.request, logging, io, errors, requests, math
 
 TMDB_API_KEY    = "b9692454ba258237fa4c703f45f7467a"
-TMDB_IMAGE_URL  = lambda x: f"https://image.tmdb.org/t/p/w{x}"
+TMDB_IMAGE_URL  = lambda x: f"https://image.tmdb.org/t/p/w{x}" # 92, 154, 185, 342, 500, 780, original
 TMDB_MOVIE_URL  = lambda x: f"https://api.themoviedb.org/3/movie/{x}?api_key={TMDB_API_KEY}"
 
 # put this in a file so it can be accessed from multiple places
