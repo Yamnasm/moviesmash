@@ -63,7 +63,7 @@ async def restart(ctx):
     os.execv(sys.executable, ["python3"] + sys.argv) # restart the bot
 
 @bot.command(name="broadcast", pass_context=True)
-async def broadcast(msg, ctx):
+async def broadcast(ctx, msg):
     if not str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
         logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .broadcast command")
         await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
@@ -85,7 +85,7 @@ async def users(ctx):
     await ctx.author.send(members)
 
 @bot.command(name="cancel", pass_context=True)
-async def cancel(user, ctx):
+async def cancel(ctx, user):
     if not str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
         logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .cancel command")
         await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
