@@ -1,5 +1,5 @@
-from PIL import Image
-import json, time, random, math, urllib.request, logging, io, errors
+from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
+import json, time, random, math, urllib.request, logging, io, errors, requests, math
 
 TMDB_API_KEY    = "b9692454ba258237fa4c703f45f7467a"
 TMDB_IMAGE_URL  = "https://image.tmdb.org/t/p/w154"
@@ -15,7 +15,98 @@ LAST_UPDATED     = 0
 
 LOG_CHANNEL      = 903446384932446299
 
+TIERLIST_MAX_COLUMNS_ALLOWED = 50
+TIERLIST_PADDING_PIXELS = (10, 10, 10, 10)
+TIERLIST_FONT_FAMILY    = "arial.ttf"
+TIERLIST_POSTER_WIDTH   = 92
+TIERLIST_POSTER_HEIGHT  = 138
+TIERLIST_FONTSIZE       = 50 # pixels
+TIERLIST_CATEGORIES     = [
+    {"text": "SS+", "colour": "#ff7f7f"},
+    {"text": "S+" , "colour": "#ffbf7f"},
+    {"text": "S"  , "colour": "#ffdf7f"},
+    {"text": "A"  , "colour": "#ffff7f"},
+    {"text": "B"  , "colour": "#bfff7f"},
+    {"text": "C"  , "colour": "#7fff7f"},
+    {"text": "D"  , "colour": "#7fffff"},
+    {"text": "E"  , "colour": "#7fbfff"},
+    {"text": "F"  , "colour": "#7f7fff"},
+    {"text": "?"  , "colour": "#ff7fff"}
+]
+
 logger = logging.getLogger(__name__)
+
+def generate_tierlist(tiered_movies):
+
+    # this is so we can loop through them all and stitch them together
+    tier_images = []
+
+    for i, movies in enumerate(tiered_movies):
+
+        text   = TIERLIST_CATEGORIES[i].get('text')
+        colour = ImageColor.getrgb(TIERLIST_CATEGORIES[i].get('colour'))
+        label  = Image.new("RGB", (TIERLIST_POSTER_WIDTH, TIERLIST_POSTER_HEIGHT), colour)
+        font   = ImageFont.truetype(TIERLIST_FONT_FAMILY, TIERLIST_FONTSIZE)
+
+        text_width, text_height = font.getsize(text)
+        text_position = ( (TIERLIST_POSTER_WIDTH - text_width) / 2, (TIERLIST_POSTER_HEIGHT - text_height) / 2 )
+        ImageDraw.Draw(label).text(text_position, text, fill="white", font=font)
+
+        # creates the starting image that has all the movie posters appended to but first
+        # we need to paste the tierlist label onto it
+        start_image = Image.new("RGB", (TIERLIST_POSTER_WIDTH * 2, TIERLIST_POSTER_HEIGHT), colour)
+        start_image.paste(label, (0, 0))
+
+        processed_movies = 0
+        row = 0
+
+        # get the correct width and height for the tierlist
+        max_width  = min(TIERLIST_POSTER_WIDTH, max(len(movies) for movies in tiered_movies)) * TIERLIST_MAX_COLUMNS_ALLOWED
+        max_height = TIERLIST_POSTER_HEIGHT * math.ceil(len(movies) / TIERLIST_MAX_COLUMNS_ALLOWED)
+
+        while not processed_movies == len(movies):
+            col = 1 # start at one so the label is on it's own column
+
+            while not col == TIERLIST_MAX_COLUMNS_ALLOWED:
+                
+                # stop processing if we run out of movies to append
+                try:
+                    image = movies[processed_movies]
+                except IndexError:
+                    break
+                
+                # NOTE: this could maybe be more efficient? maybe we don't need two pastes
+                destination = Image.new("RGB", (max_width, max_height), colour)
+                destination.paste(start_image, (0, 0))
+                destination.paste(image, (TIERLIST_POSTER_WIDTH * col, TIERLIST_POSTER_HEIGHT * row))
+
+                start_image = destination
+                col += 1
+                processed_movies += 1
+            
+            row += 1
+        
+        final_image = ImageOps.expand(start_image, TIERLIST_PADDING_PIXELS, colour)
+        tier_images.append(final_image)
+    
+    # get the largest width in the tierlist and the combined height of all the images
+    max_width  = max(image.width for image in tier_images)
+    max_height = sum(image.height for image in tier_images)
+
+    # stitch together all the generated tier images
+    start_image = Image.new("RGB", (max_width, max_height))
+    height = 0
+
+    for image in tier_images:
+        start_image.paste(image, (0, height))
+        height += image.height
+    
+    output = io.BytesIO()
+    start_image.save(output, format="PNG")
+    output.seek(0)
+
+    return output
+
 
 def convert_posters_to_single_image(poster1, poster2):
     logger.debug(f"convert_posters_to_single_image: received url ({poster1})")
