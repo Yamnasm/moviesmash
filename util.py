@@ -202,14 +202,18 @@ def get_movie_property(movie_id, property):
 
         return movies[property]
 
-def store_user_submitted_movie(movie_id, title):
-    with open("user_movies.json", "r") as file:
+def store_user_submitted_movie(movie_id, title, weight, poster):
+    with open("user_movies.json") as file:
         data = json.load(file)
 
     data[movie_id] = {
-        "name": title,                                       # this can go into the negative???
-        "weight": get_movie_property(movie_id, "popularity") # - MINIMUM_MOVIE_POPULARITY
+        "name": title,    # this can go into the negative???
+        "weight": weight, # - MINIMUM_MOVIE_POPULARITY
+        "poster": poster
     }
+
+    with open("user_movies.json", "w") as file:
+        json.dump(data, file)
 
 def log_result(user_id, user_name, winner, loser):
     with open("history.json", "r") as file:

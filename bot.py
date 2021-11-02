@@ -98,9 +98,21 @@ async def add(ctx, movie):
             return
             
         else:
+
+            poster = util.get_movie_property(movie_id, "poster_path")
+
+            if not poster:
+                logger.info(f"{ctx.author.name}#{ctx.author.discriminator} gave a TMDB-valid URL but it does not have a poster_path.")
+                await ctx.send(f"{ctx.author.mention} movie found but it does not have a poster", delete_after=3)
+                await ctx.message.delete()
+                return
+
+            weight = util.get_movie_property(movie_id, "popularity")
+            title = util.get_movie_property(movie_id, "title")
+            
             logger.info(f"{ctx.author.name}#{ctx.author.discriminator} added {title} ({date.split('-')[0]})")
             await ctx.send(f"{ctx.author.mention} added {title} ({date.split('-')[0]}) to the user-generated movie list!")
-            util.store_user_submitted_movie(movie_id)
+            util.store_user_submitted_movie(movie_id, title=title, weight=weight, poster=poster)
     
     else:
         logger.info(f"{ctx.author.name}#{ctx.author.discriminator} sent an invalid url, ignoring...")
