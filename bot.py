@@ -160,8 +160,8 @@ async def pick(ctx, log=True, colour=None, validation=False):
 
     logger.debug(f".pick ({chooser}): getting posters from choices...")
 
-    poster1 = util.TMDB_IMAGE_URL + util.get_movie_property(choices[0]["id"], "poster_path")
-    poster2 = util.TMDB_IMAGE_URL + util.get_movie_property(choices[1]["id"], "poster_path")
+    poster1 = util.TMDB_IMAGE_URL(154) + util.get_movie_property(choices[0]["id"], "poster_path")
+    poster2 = util.TMDB_IMAGE_URL(154) + util.get_movie_property(choices[1]["id"], "poster_path")
     description = f"1. {choices[0]['title']}\n2. {choices[1]['title']}\n"
 
     embed = discord.Embed(title="- P I C K - A - M O V I E -", description=description, colour=colour)
