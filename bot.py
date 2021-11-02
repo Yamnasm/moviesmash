@@ -72,6 +72,18 @@ async def broadcast(msg, ctx):
         member = util.get_member_from_id(ctx.bot.guilds, user)
         await member.send(msg)
 
+@bot.command(name="users", pass_context=True)
+async def users(ctx):
+    if not str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .users command")
+        await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
+    
+    members = [util.get_member_from_id(ctx.bot.guilds, user) for user in ongoing_users]
+    members = [f"{member.name}#{member.discriminator}" for member in members]
+
+    # don't expose users on a public channel
+    await ctx.author.send(members)
+
 @bot.command(name="test", pass_context=True)
 async def test(ctx):
     logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .test command")
