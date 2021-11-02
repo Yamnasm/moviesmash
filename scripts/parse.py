@@ -61,12 +61,15 @@ def parse_from_raw():
         print(f"-- [{i}/{len(raw_movies)}] {movie['id']} --\nTITLE: {movie['title']}")
         poster = check_movie(movie)
 
+        # checks for an english version of the movie title
+        title = util.get_movie_property(movie['id'], "title") or movie['title']
+
         if poster:
             print(termcolor.colored("THIS MOVIE CHECKS ALL BOXES, ADDING TO OUR DATABASE\n\n", "green"))
             
             movie_dictionary[movie['id']] = {
                 "id": movie["id"],
-                "title": movie["title"],
+                "title": title,
                 "weight": movie["popularity"] - POPULARITY_MINIMUM,
                 "poster": poster
             }
