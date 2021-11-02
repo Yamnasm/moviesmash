@@ -79,20 +79,31 @@ async def users(ctx):
         await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
     
     members = [util.get_member_from_id(ctx.bot.guilds, user) for user in ongoing_users]
-    members = [f"{member.name}#{member.discriminator}" for member in members]
+    members_name = [f"{member.name}#{member.discriminator}" for member in members]
+
+    message = ""
+    for i, name in enumerate(members_name):
+        message += f"[{ongoing_users[i]}] {name}"
 
     # don't expose users on a public channel
-    await ctx.author.send(members)
+    await ctx.author.send(message)
 
 @bot.command(name="cancel", pass_context=True)
 async def cancel(ctx, user):
     if not str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
         logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .cancel command")
         await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
-    
+
+    try:
+        user = int(user)
+    except ValueError:
+        return
+
     if user in ongoing_users:
         logger.info(f".pick ({user}): WAS FORCED TO stop requesting choices")
-        ongoing_users.remove(ctx.author.id)
+        ongoing_users.remove(user)
+    else:
+        await ctx.author.send("That user isn't active with me", delete_after=3)
 
 @bot.command(name="test", pass_context=True)
 async def test(ctx):
