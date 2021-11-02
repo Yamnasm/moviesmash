@@ -53,14 +53,24 @@ async def close():
 
 @bot.command(name="restart", pass_context=True)
 async def restart(ctx):
-    if str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
-        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .restart command")
-        await ctx.send("restarting bot...", delete_after=3)
-        await asyncio.sleep(4)
-        os.execv(sys.executable, ["python3"] + sys.argv) # restart the bot
-    else:
+    if not str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
         logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .restart command")
         await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
+
+    logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .restart command")
+    await ctx.send("restarting bot...", delete_after=3)
+    await asyncio.sleep(4)
+    os.execv(sys.executable, ["python3"] + sys.argv) # restart the bot
+
+@bot.command(name="broadcast", pass_context=True)
+async def broadcast(msg, ctx):
+    if not str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .broadcast command")
+        await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
+
+    for user in ongoing_users:
+        member = util.get_member_from_id(ctx.bot.guilds, user)
+        await member.send(msg)
 
 @bot.command(name="test", pass_context=True)
 async def test(ctx):

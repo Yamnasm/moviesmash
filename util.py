@@ -37,6 +37,11 @@ TIERLIST_CATEGORIES     = [
 
 logger = logging.getLogger(__name__)
 
+def get_member_from_id(guilds, other):
+    for guild in guilds:
+        if guild.get_member(other):
+            return guild.get_member(other)
+
 def generate_tierlist(tiered_movies):
 
     # this is so we can loop through them all and stitch them together
