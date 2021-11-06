@@ -34,7 +34,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix=".", pm_help=None, intents=intents)
 
-ongoing_users = set()
+ongoing_users = []
 
 @bot.event
 async def on_ready():
@@ -69,7 +69,7 @@ async def broadcast(ctx, msg):
         await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
 
     for user in ongoing_users:
-        member = util.get_member_from_id(ctx.bot.guilds, user)
+        member = await bot.fetch_user(user)
         await member.send(msg)
 
 @bot.command(name="users", pass_context=True)
@@ -78,8 +78,12 @@ async def users(ctx):
         logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .users command")
         await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
     
-    members = [util.get_member_from_id(ctx.bot.guilds, user) for user in ongoing_users]
+    members = [await bot.fetch_user(user) for user in ongoing_users]
     members_name = [f"{member.name}#{member.discriminator}" for member in members]
+
+    if not len(members):
+        await ctx.author.send("Nobody is active with me!", delete_after=3)
+        return
 
     message = ""
     for i, name in enumerate(members_name):
