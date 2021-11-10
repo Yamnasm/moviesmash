@@ -1,5 +1,5 @@
 from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
-import json, time, random, math, urllib.request, logging, io, errors, requests, math, bot
+import json, time, random, urllib.request, logging, io, errors, requests, math, bot
 
 TMDB_API_KEY    = "b9692454ba258237fa4c703f45f7467a"
 TMDB_IMAGE_URL  = lambda x: f"https://image.tmdb.org/t/p/w{x}" # 92, 154, 185, 342, 500, 780, original
@@ -7,8 +7,6 @@ TMDB_MOVIE_URL  = lambda x: f"https://api.themoviedb.org/3/movie/{x}?api_key={TM
 
 # put this in a file so it can be accessed from multiple places
 MINIMUM_MOVIE_POPULARITY = 50
-
-ELO_K_FACTOR = 30
 
 UPDATER_INTERVAL = 0
 LAST_UPDATED     = 0
@@ -127,15 +125,6 @@ def convert_posters_to_single_image(poster1, poster2):
     output.seek(0)
     return output
 
-# def get_random_movie_from_data(movies):
-#     choices = random.sample(list(movies.keys()), 2)
-
-#     # prevents giving the user the same movie
-#     if choices[0]["id"] == choices[1]["id"]:
-#         return get_random_movie_from_data(movies)
-#     else:
-#         return choices
-
 def get_local_movie_from_id(id):
     with open("movies.json", "r") as file:
         movies = json.load(file)
@@ -173,19 +162,6 @@ def weighted_movie_pick():
             return weighted_movie_pick()
         else:
             return choices
-
-def probability(r1, r2):
-    return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (r1 - r2) / 400))
-
-def elo_rating(w, l):
-    w = int(w + ELO_K_FACTOR * (1 - probability(l, w)))
-    l = int(l + ELO_K_FACTOR * (0 - probability(w, l)))
-    return ((w, l))
-
-def create_choice():
-    with open("movies.json", "r") as file:
-        movies = json.load(file)
-        return random.sample(movies, 2)
 
 def get_movie_property(movie_id, property):
     url = TMDB_MOVIE_URL(movie_id)
