@@ -1,5 +1,5 @@
 from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
-import json, time, random, urllib.request, logging, io, errors, requests, math, bot
+import json, time, random, urllib.request, logging, io, errors, requests, math, bot, process_elo
 
 TMDB_API_KEY    = "b9692454ba258237fa4c703f45f7467a"
 TMDB_IMAGE_URL  = lambda x: f"https://image.tmdb.org/t/p/w{x}" # 92, 154, 185, 342, 500, 780, original
@@ -29,11 +29,56 @@ TIERLIST_CATEGORIES     = [
     {"text": "C"  , "colour": "#7fff7f"},
     {"text": "D"  , "colour": "#7fffff"},
     {"text": "E"  , "colour": "#7fbfff"},
-    {"text": "F"  , "colour": "#7f7fff"},
-    {"text": "?"  , "colour": "#ff7fff"}
+    {"text": "F"  , "colour": "#7f7fff"}
 ]
 
 logger = logging.getLogger(__name__)
+
+def get_local_movie_from_id(id):
+    with open("movies.json", "r") as file:
+        movies = json.load(file)
+
+    return movies.get(str(id), False)
+
+def generate_tiered_movies():
+    ranked_movies = process_elo.process_history()
+    ranked_movies = sorted(ranked_movies, key=lambda x: x["elo"], reverse=True)
+
+    maximum_elo = ranked_movies[0]["elo"]
+    minimum_elo = ranked_movies[-1]["elo"]
+    threshold = (maximum_elo - minimum_elo) // 9 # 9 is the amount of tiers in our tierlist
+    tiered_movies = [[], [], [], [], [], [], [], [], []]
+
+    for movie in ranked_movies:
+        elo = movie["elo"]
+
+        if   maximum_elo == elo > (threshold * 8) + minimum_elo:
+            tiered_movies[0].append(movie)
+        elif (threshold * 8) + minimum_elo < elo > (threshold * 7) + minimum_elo:
+            tiered_movies[1].append(movie)
+        elif (threshold * 7) + minimum_elo < elo > (threshold * 6) + minimum_elo:
+            tiered_movies[2].append(movie)
+        elif (threshold * 6) + minimum_elo < elo > (threshold * 5) + minimum_elo:
+            tiered_movies[3].append(movie)
+        elif (threshold * 5) + minimum_elo < elo > (threshold * 4) + minimum_elo:
+            tiered_movies[4].append(movie)
+        elif (threshold * 4) + minimum_elo < elo > (threshold * 3 + minimum_elo):
+            tiered_movies[5].append(movie)
+        elif (threshold * 3) + minimum_elo < elo > (threshold * 2) + minimum_elo:
+            tiered_movies[6].append(movie)
+        elif (threshold * 2) + minimum_elo < elo > (threshold * 1) + minimum_elo:
+            tiered_movies[7].append(movie)
+        elif threshold + minimum_elo < elo > minimum_elo:
+            tiered_movies[8].append(movie) 
+
+    # DEBUG
+    # print("THRESHOLDS: F     E     D     C     B     A     S     S+    SS+")
+    # print("THRESHOLDS:", minimum_elo, [(threshold * i) + minimum_elo for i in range(1, 8)], maximum_elo)
+
+    # with open("tiered.json", "w") as file:
+    #     json.dump(tiered_movies, file)
+
+    return tiered_movies
 
 def generate_tierlist(tiered_movies):
 
@@ -70,7 +115,20 @@ def generate_tierlist(tiered_movies):
                 
                 # stop processing if we run out of movies to append
                 try:
-                    image = movies[processed_movies]
+                    movie_id = movies[processed_movies]["movie_id"]
+                    movie = get_local_movie_from_id(movie_id)
+                    poster = TMDB_IMAGE_URL(92) + movie["poster"]
+
+                    r = requests.get(poster, stream=True)
+
+                    if not r.status_code == 200:
+                        raise Exception(f"Didn't receive a 200 OK on downloading {poster}")
+                    
+                    # DEBUG
+                    # print(f"{get_movie_property(movie_id, 'title')} placed {text}")
+
+                    image = Image.open(io.BytesIO(r.content))
+
                 except IndexError:
                     break
                 
@@ -124,12 +182,6 @@ def convert_posters_to_single_image(poster1, poster2):
     logger.debug("convert_posters_to_single_image: setting seek to zero for bytesio object")
     output.seek(0)
     return output
-
-def get_local_movie_from_id(id):
-    with open("movies.json", "r") as file:
-        movies = json.load(file)
-
-    return movies.get(str(id), False)
 
 def weighted_movie_pick():
     def iterate_comparison(rt, ti):

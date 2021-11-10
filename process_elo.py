@@ -53,3 +53,7 @@ def process_history():
     
 if __name__ == "__main__":
     print(process_history())
+
+    ratings = process_history()
+    with open("ratings.json", "w") as file:
+        json.dump(ratings, file)

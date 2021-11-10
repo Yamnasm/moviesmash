@@ -114,6 +114,24 @@ async def test(ctx):
     logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .test command")
     await ctx.send("test")
 
+@bot.command(name="generate", pass_context=True)
+async def generate(ctx):
+    if not str(ctx.author.id) in ("521807077522407427", "168778575971876864"):
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} attempted to invoke .generate command")
+        await ctx.send(f"{ctx.author.mention} you don't have permission to do that", delete_after=3)
+    else:
+        logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .generate command")
+    
+    tiered_movies = util.generate_tiered_movies()
+    tierlist_file = util.generate_tierlist(tiered_movies)
+
+    # DEBUG
+    with open("tierlist.png", "wb") as file:
+        file.write(tierlist_file.getbuffer())
+
+    # file = discord.File(tierlist_file, filename="tierlist.png")
+    # await ctx.send(file=file)
+
 @bot.command(name="add", pass_context=True)
 async def add(ctx, movie):
     logger.info(f"{ctx.author.name}#{ctx.author.discriminator} invoked .add command")
@@ -201,6 +219,7 @@ async def pick(ctx, log=True, colour=None, validation=False):
 
     check = lambda reaction, user: not user.bot and user == ctx.author and str(reaction.emoji) in ("⬅️", "➡️", "↪️", "🛑")
 
+    # make the choices weighted based on popularity
     choices = util.weighted_movie_pick()
 
     logger.debug(f".pick ({chooser}): profiling poster downloads...")
